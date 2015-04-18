@@ -72,19 +72,30 @@ class Entity {
 		spr.onAnimEnd = onEnd == null ? function() { } : onEnd;
 	}
 
+	function collide( x:Float, y :Float ) {
+		return game.level.collide(this, x, y);
+	}
+
 	public function moveX( dx : Float ) {
 		x += dx;
 		var way : Float = dx < 0 ? -1 : 1;
 		way *= 0.5 / 16;
-		while( game.level.collide(x + feets * way, y - 0.001) || game.level.collide(x + feets * way, y - height / 16) || game.level.collide(x + feets * way, y - height * 0.5 / 16) )
+		if( collide(x + feets * way, y - 0.001) || collide(x + feets * way, y - height / 16) || collide(x + feets * way, y - height * 0.5 / 16) )
 			x = (dx < 0 ? Math.floor(x) : (Math.ceil(x) - 0.001)) - feets * way;
 	}
 
 	public function moveY( dy : Float ) {
 		y += dy;
-		while( game.level.collide(x - feets * 0.5 / 16, y - 0.001) || game.level.collide(x + feets * 0.5 / 16, y - 0.001) ) {
+		if( dy < 0 ) {
+
+			if( collide(x - feets * 0.5 / 16, y - height / 16) || collide(x + feets * 0.5 / 16, y - height / 16) ) {
+				y = Math.ceil(y - height / 16) + height/16;
+				if( acc < 0 ) acc = 0;
+			}
+
+		} else if( collide(x - feets * 0.5 / 16, y - 0.001) || collide(x + feets * 0.5 / 16, y - 0.001) ) {
 			if( anim == "fall" || anim == "jump" ) play("default");
-			y = Std.int(y - 0.001);
+			y = Math.floor(y - 0.001);
 			acc = 0;
 		}
 	}

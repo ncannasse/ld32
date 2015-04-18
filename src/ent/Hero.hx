@@ -4,7 +4,7 @@ class Hero extends Entity {
 
 	public function new(x,y) {
 		super(Hero, x, y);
-		feets = 9;
+		feets = 20;
 		height = 24;
 	}
 
@@ -26,16 +26,17 @@ class Hero extends Entity {
 		}
 		if( game.key.left ) {
 			spr.scaleX = -1;
-			moveX( -0.1 * dt);
+			moveX( -0.12 * dt);
 		}
 		if( game.key.right ) {
 			spr.scaleX = 1;
-			moveX(0.1 * dt);
+			moveX(0.12 * dt);
 		}
 		if( anim != "jump" && (game.key.left || game.key.right) ) {
 			if( anim != "run" ) play("run");
 		} else if( anim == "run" )
 			play("default");
+		height = anim == "jump" ? 30 : 24;
 	}
 
 }

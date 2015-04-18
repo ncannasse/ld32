@@ -5,3 +5,4 @@ Day 1:
 ------
 
 09:30-10:30		started, hero sprite + jump + cols
+10:30-11:00		cdb integration, fixed cols

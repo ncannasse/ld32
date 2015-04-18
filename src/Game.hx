@@ -3,6 +3,7 @@ import hxd.Key in K;
 
 class Game extends hxd.App {
 
+	var speed = 1.;
 	public var level : Level;
 	public var hero : ent.Hero;
 	public var frames : Map < Kind, Map < String, Array<h2d.Tile> > > ;
@@ -19,6 +20,15 @@ class Game extends hxd.App {
 	}
 
 	override function update(dt:Float) {
+
+		#if debug
+		if( K.isPressed("R".code) ) {
+			speed = speed == 1 ? 0.1 : 1;
+		}
+		#end
+		hxd.Timer.tmod *= speed;
+		dt *= speed;
+
 		key = {
 			left : K.isDown(K.LEFT) || K.isDown("Q".code) || K.isDown("A".code),
 			right : K.isDown(K.RIGHT) || K.isDown("D".code),
@@ -62,6 +72,7 @@ class Game extends hxd.App {
 		hxd.res.Resource.LIVE_UPDATE = true;
 		#end
 		hxd.Res.initEmbed();
+		Data.load(hxd.Res.data.entry.getBytes().toString());
 		new Game();
 	}
 
