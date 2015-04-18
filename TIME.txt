@@ -6,3 +6,13 @@ Day 1:
 
 09:30-10:30		started, hero sprite + jump + cols
 10:30-11:00		cdb integration, fixed cols
+11:00-13:00		tried animation, not working well...
+13:00-13:30		lunch
+13:30-15:30		voiiiiidd (looking for ideas)
+15:30-19:30		music (audiotool)
+19:30-20:30		gfx
+20:30-21:00		diner
+21:00-22:00		more gfx, fog layer
+22:00-00:00		more gfx, bloom
+00:00-00:30		gfx : hair anim
+00:30-01:45		code : can catch rotator, no physics/cols yet

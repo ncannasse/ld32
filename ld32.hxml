@@ -5,4 +5,5 @@
 -main Game
 -lib heaps
 -lib castle
+-lib air3
 -dce full

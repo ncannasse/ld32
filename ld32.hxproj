@@ -24,7 +24,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="Game" />
     <option enabledebug="False" />
-    <option additional="-lib heaps&#xA;-lib castle&#xA;-dce full" />
+    <option additional="-lib heaps&#xA;-lib castle&#xA;-lib air3&#xA;-dce full" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
@@ -50,8 +50,8 @@
   <!-- Other project options -->
   <options>
     <option showHiddenPaths="False" />
-    <option testMovie="Default" />
-    <option testMovieCommand="" />
+    <option testMovie="OpenDocument" />
+    <option testMovieCommand="ld32.app" />
   </options>
   <!-- Plugin storage -->
   <storage />

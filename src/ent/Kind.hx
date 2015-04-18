@@ -1,6 +1,3 @@
 package ent;
 
-enum Kind {
-	Hero;
-}
-
+typedef Kind = Data.MobKind;
