@@ -8,20 +8,29 @@ class Level {
 	var time = 0.;
 	var fog : h2d.TileGroup;
 	var ents : Map<Int, ent.Entity>;
+	public var scroll : h2d.Sprite;
 	public var root : h2d.Layers;
 
 	public var width : Int;
 	public var height : Int;
+	public var startX : Int;
+	public var startY : Int;
 
 	public function new() {
 		game = Game.inst;
-		root = new h2d.Layers(game.s2d);
+		scroll = new h2d.Sprite(game.s2d);
+		root = new h2d.Layers(scroll);
 		ents = new Map();
 	}
 
 	public function collide( e : ent.Entity, x : Float, y : Float )  {
 		if( x < 0 || x >= width || y < 0 || y >= height ) return true;
 		return cols[Std.int(x) + Std.int(y) * width];
+	}
+
+	public function setCollide(x, y, v) {
+		if( x < 0 || x >= width || y < 0 || y >= height ) return;
+		cols[x + y * width] = v;
 	}
 
 	public function init() {
@@ -94,8 +103,13 @@ class Level {
 				old.remove(id);
 				continue;
 			}
-			var e : ent.Entity = switch( m.kind ) {
-			default: new ent.Entity(m.kindId, m.x, m.y);
+			var e : ent.Entity = switch( m.kindId ) {
+			case Hero:
+				startX = m.x;
+				startY = m.y;
+				continue;
+			default:
+				ent.Entity.create(m.kindId, m.x + 0.5, m.y + 1);
 			};
 			ents.set(id, e);
 		}

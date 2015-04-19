@@ -11,16 +11,25 @@ class Game extends hxd.App {
 	public var frames : Map < String, Map < String, Array<h2d.Tile> > > ;
 	public var entities : Array<ent.Entity>;
 	public var key : { left : Bool, right : Bool, jump : Bool, action : Bool, actionPressed : Bool };
-	var action = false;
+	public var event : hxd.WaitEvent;
+	var actionButton = false;
+	var parts : h2d.SpriteBatch;
 
 	override function init() {
 		inst = this;
 		initFrames();
 		entities = [];
+		event = new hxd.WaitEvent();
 		s2d.setFixedSize(256, 240);
 		level = new Level();
-		hero = new ent.Hero(10, 10);
 		level.init();
+
+		parts = new h2d.SpriteBatch(hxd.Res.mobs.toTile(), level.root);
+		parts.hasUpdate = true;
+
+		hero = new ent.Hero(level.startX, level.startY + 1);
+		sx = hero.x * 16 - 128;
+		sy = hero.y * 16 - 128;
 	}
 
 	override function update(dt:Float) {
@@ -40,20 +49,21 @@ class Game extends hxd.App {
 			actionPressed : false,
 		};
 		if( key.action ) {
-			if( !action ) {
-				action = true;
+			if( !actionButton ) {
+				actionButton = true;
 				key.actionPressed = true;
 			}
 		} else
-			action = false;
+			actionButton = false;
 
 		for( e in entities.copy() )
 			e.update(dt);
 
+		event.update(dt);
 		level.update(dt);
 
 		var tx = hero.x * 16 - 128;
-		var ty = hero.y * 16 - 128;
+		var ty = Math.max(hero.y,hero.baseY) * 16 - 128;
 		var p = Math.pow(0.9, dt);
 		sx = sx * p + (1 - p) * tx;
 		sy = sy * p + (1 - p) * ty;
@@ -61,8 +71,24 @@ class Game extends hxd.App {
 		if( sy < 0 ) sy = 0;
 		if( sx + s2d.width > level.width * 16 ) sx = level.width * 16 - s2d.width;
 		if( sy + s2d.height > level.height * 16 ) sy = level.height * 16 - s2d.height;
-		level.root.x = -sx;
-		level.root.y = -sy;
+		level.scroll.x = -sx;
+		level.scroll.y = -sy;
+	}
+
+	public function action() {
+		if( key.actionPressed ) {
+			key.actionPressed = false;
+			return true;
+		}
+		return false;
+	}
+
+	public function getText(?parent) {
+		var t = new h2d.Text(hxd.Res.font.toFont(), parent);
+		t.scale(2 / 3);
+		t.textColor = 0xF0F0F0;
+		t.dropShadow = { dx : 1, dy : 1, color : 0, alpha : 0.4 };
+		return t;
 	}
 
 	function initFrames() {
@@ -70,6 +96,9 @@ class Game extends hxd.App {
 		var a : Array<{ k : Kind, w : Int, h : Int, ?l : Array<Dynamic> }> = [
 			{ k : Hero, w : 2, h : 2, l : ["default", 1, "blink", 1, "prerun", 1, "run", 3, "jump", 2, "attack", 2, "hair", 5, "catch", 3] },
 			{ k : Rotator, w : 1, h : 1 },
+			{ k : Npc, w : 1, h : 2 },
+			{ k : Rock, w : 1, h : 1 },
+			{ k : Spider, w : 2, h : 1, l : ["run", 3] },
 		];
 		var tile = hxd.Res.sprites.toTile();
 		var x = 0;
@@ -119,17 +148,27 @@ class Game extends hxd.App {
 		}
 	}
 
+	public function addPart( t : h2d.Tile, x : Float, y : Float, vx : Float, vy : Float ) {
+		var p = new Part(t);
+		parts.add(p);
+		p.x = x * 16;
+		p.y = y * 16;
+		p.vx = vx * 16;
+		p.vy = vy * 16;
+	}
+
 	public static var inst : Game;
 	static function main() {
 		#if debug
 		hxd.res.Resource.LIVE_UPDATE = true;
 		hxd.Res.initLocal();
+		Std.instance(hxd.Res.loader.fs, hxd.fs.LocalFileSystem).createMP3 = true;
 		hxd.Res.data.watch(function() {
 			Data.load(hxd.Res.data.entry.getBytes().toString());
 			inst.level.init();
 		});
 		#else
-		hxd.Res.initEmbed();
+		hxd.Res.initEmbed({compressSounds:true});
 		#end
 		var c = new hxd.snd.SoundData();
 		c.loadURL("music.mp3");

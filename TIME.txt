@@ -16,3 +16,10 @@ Day 1:
 22:00-00:00		more gfx, bloom
 00:00-00:30		gfx : hair anim
 00:30-01:45		code : can catch rotator, no physics/cols yet
+
+Day 2:
+------
+
+10:45-13:15		physics for rotator (was hard to get right)
+13:14-14:00		lunch
+14:00-16:00		npc, dialog system, first mob anim, die parts, base sfx
