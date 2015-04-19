@@ -73,15 +73,6 @@ class Npc extends Entity {
 		ti.x = (g.width >> 1) - 6;
 		ti.y = g.height - 1;
 
-		if( g.x < 5 ) {
-			ti.x -= 5 - g.x;
-			g.x = 5;
-		}
-
-		if( g.x + g.width > 330 ) {
-			ti.x += g.x + g.width - 330;
-			g.x = 330 - g.width;
-		}
 		return { g : g, t : t, ti : ti };
 	}
 

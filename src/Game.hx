@@ -14,6 +14,7 @@ class Game extends hxd.App {
 	public var event : hxd.WaitEvent;
 	var actionButton = false;
 	var parts : h2d.SpriteBatch;
+	var hparts : h2d.SpriteBatch;
 
 	override function init() {
 		inst = this;
@@ -24,12 +25,25 @@ class Game extends hxd.App {
 		level = new Level();
 		level.init();
 
-		parts = new h2d.SpriteBatch(hxd.Res.mobs.toTile(), level.root);
+		parts = new h2d.SpriteBatch(hxd.Res.mobs.toTile());
+		level.root.add(parts, 1);
 		parts.hasUpdate = true;
 
-		hero = new ent.Hero(level.startX, level.startY + 1);
+		hparts = new h2d.SpriteBatch(hxd.Res.sprites.toTile());
+		level.root.add(hparts, 1);
+		hparts.hasUpdate = true;
+
+		hero = new ent.Hero(level.startX, level.startY);
 		sx = hero.x * 16 - 128;
-		sy = hero.y * 16 - 128;
+		sy = (hero.y - 1) * 16 - 120;
+	}
+
+	public function restart() {
+		hero.x = level.startX;
+		hero.y = level.startY;
+		hero.restart();
+		sx = hero.x * 16 - 128;
+		sy = (hero.y - 1) * 16 - 120;
 	}
 
 	override function update(dt:Float) {
@@ -37,6 +51,14 @@ class Game extends hxd.App {
 		if( K.isPressed("R".code) ) {
 			speed = speed == 1 ? 0.1 : 1;
 		}
+		if( K.isPressed(K.BACKSPACE) )
+			restart();
+		if( K.isPressed("S".code) && K.isDown(K.CTRL) ) {
+			level.startX = hero.x;
+			level.startY = hero.y;
+		}
+		if( K.isPressed(K.SHIFT) )
+			@:privateAccess hero.acc = -1;
 		#end
 		hxd.Timer.tmod *= speed;
 		dt *= speed;
@@ -63,7 +85,7 @@ class Game extends hxd.App {
 		level.update(dt);
 
 		var tx = hero.x * 16 - 128;
-		var ty = Math.max(hero.y,hero.baseY) * 16 - 128;
+		var ty = (Math.max(hero.y,hero.baseY) - 1) * 16 - 120;
 		var p = Math.pow(0.9, dt);
 		sx = sx * p + (1 - p) * tx;
 		sy = sy * p + (1 - p) * ty;
@@ -99,6 +121,7 @@ class Game extends hxd.App {
 			{ k : Npc, w : 1, h : 2 },
 			{ k : Rock, w : 1, h : 1 },
 			{ k : Spider, w : 2, h : 1, l : ["run", 3] },
+			{ k : Jumper, w : 2, h : 2 },
 		];
 		var tile = hxd.Res.sprites.toTile();
 		var x = 0;
@@ -148,9 +171,9 @@ class Game extends hxd.App {
 		}
 	}
 
-	public function addPart( t : h2d.Tile, x : Float, y : Float, vx : Float, vy : Float ) {
+	public function addPart( t : h2d.Tile, x : Float, y : Float, vx : Float, vy : Float, hero = false ) {
 		var p = new Part(t);
-		parts.add(p);
+		if( hero ) hparts.add(p) else parts.add(p);
 		p.x = x * 16;
 		p.y = y * 16;
 		p.vx = vx * 16;

@@ -8,6 +8,7 @@ class Hero extends Entity {
 	var catchSpeed : Float;
 	var canJump = true;
 	var hitRecovery = 0.;
+	var hitList : Array<Entity>;
 	public var lock = false;
 	public var baseY : Float;
 
@@ -19,8 +20,24 @@ class Hero extends Entity {
 		hitDebug.y = - 16;
 	}
 
+	override function destroy() {
+		super.destroy();
+		hxd.Res.sfx.hero_die.play();
+		game.event.wait(2, game.restart);
+	}
+
+	public function restart() {
+		add();
+		acc = 0;
+		accX = 0;
+		lock = false;
+		gravity = true;
+		state = Jump;
+		hitRecovery = 1;
+	}
+
 	override public function hit(by:Entity) {
-		if( lock || hitRecovery > 0 ) return;
+		if( lock || hitRecovery > 0 || state == Catch ) return;
 		hitRecovery = 2;
 		push( x < by.x ? -2 : 2, -0.2 );
 		hxd.Res.sfx.hero_hurt.play();
@@ -53,6 +70,7 @@ class Hero extends Entity {
 			baseY = y;
 			if( acc == 0 ) canJump = true;
 		case Attack:
+			hitList = [];
 			state = s;
 			play("attack", function() play("hair", function() play("hair_rev", function() play("attack_rev", function() state = Stand))));
 			return s;
@@ -75,8 +93,8 @@ class Hero extends Entity {
 		if( frame < 0 ) frame = 0;
 		if( frame > 2 ) frame = 2;
 		spr.currentFrame = frame;
-		height = p;
 		spr.rotation = Math.atan2((e.y - 0.5) - y, e.x - x) + Math.PI / 2;
+		acc = 0;
 		x = e.x;
 		y = e.y - 0.5;
 	}
@@ -133,10 +151,7 @@ class Hero extends Entity {
 			if( acc < 0 && !game.key.jump )
 				acc *= Math.pow(0.9, dt);
 		case Attack:
-			/*if( !game.key.action ) {
-				if( anim != "attack_rev" && anim != "hair_rev" )
-					play("attack_rev", function() state = Jump);
-			}*/
+
 			if( anim == "hair" || anim == "hair_rev" ) {
 				var p = getHitPos();
 				//hitDebug.visible = true;
@@ -144,8 +159,10 @@ class Hero extends Entity {
 				hairBounds.set(0, -19 / 16, p, 13 / 16);
 				if( spr.scaleX < 0 ) hairBounds.xMin -= hairBounds.width;
 				for( e in game.entities.copy() )
-					if( e != this && e.checkHit(this, hairBounds) )
+					if( e != this && e.checkHit(this, hairBounds) && hitList.indexOf(e) < 0 ) {
+						hitList.push(e);
 						e.hit(this);
+					}
 			}
 		case Catch:
 			spr.rotation = hxd.Math.angle(spr.rotation + catchSpeed * dt);
@@ -179,6 +196,9 @@ class Hero extends Entity {
 			catchSpeed += da * dt;
 
 			if( game.key.actionPressed ) {
+
+				hxd.Res.sfx.yeepee.play();
+
 				var f = spr.getFrame();
 				state = Jump;
 				gravity = true;
@@ -188,6 +208,9 @@ class Hero extends Entity {
 				var dist = (f.height + f.dy) / 16;
 				x -= dist * Math.sin(a);
 				y += dist * Math.cos(a);
+
+				if( y < height / 16 ) y = height / 16;
+
 				var pow = Math.sqrt(Math.abs(catchSpeed)) * (0.5 + Math.abs(Math.sin(a))) * 5 * Math.sqrt(dist);
 
 				var dx = Math.cos(a + Math.PI) * pow - Math.sin(a) * 3;
@@ -213,22 +236,36 @@ class Hero extends Entity {
 			var bounds = getBounds().clone();
 			bounds.offset(spr.scaleX, 0);
 			if( spr.scaleX > 0 )
-				bounds.xMax -= 0.5;
+				bounds.xMax -= 0.25;
 			else
-				bounds.xMin += 0.5;
+				bounds.xMin += 0.25;
 			for( e in game.entities )
 				if( e.checkHit(this, bounds) ) {
 					switch( e.kind ) {
 					case Npc:
-						Std.instance(e, Npc).talk(["If you are stuck, use your head!","With your hairstyle, you could even break rocks!"]);
+						var text = switch( [Std.int(e.x) , Std.int(e.y - 0.1)] ) {
+						case [6, 4]:
+							["You might want to put your hair into pikes.", "Maybe it hurts, maybe it's goooood."];
+						case [13, 18]:
+							["If you are stuck, use your head!", "With your hairstyle, you could even break rocks!"];
+						case [28, 11]:
+							["You looking for XXX ?"];
+						default:
+							["???"];
+						}
+						Std.instance(e, Npc).talk(text);
 						return;
 					default:
 					}
 				}
 
-			push(spr.scaleX * 0.25, state == Jump ? 0 : -0.05);
+			push(spr.scaleX * 0.12, state == Jump ? 0 : -0.05);
 			state = Attack;
 		}
+
+		if( game.level.getCollide(x, y - 0.1) == Die && y - Std.int(y-0.1) > 0.8 )
+			destroy();
+
 	}
 
 }

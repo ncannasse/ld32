@@ -17,6 +17,8 @@ class Entity {
 				new Rock(k, x, y);
 			case Spider:
 				new Spider(k, x, y);
+			case Jumper:
+				new Jumper(k, x, y);
 			default:
 				new Entity(k, x, y);
 		};
@@ -30,6 +32,7 @@ class Entity {
 	var gravity = true;
 	var accX = 0.;
 	var canPush(default, set) = true;
+	public var life = 0;
 	public var acc : Float = 0.;
 	public var kind : Kind;
 	public var x(get, set) : Float;
@@ -60,6 +63,12 @@ class Entity {
 	function init() {
 	}
 
+	function add() {
+		remove();
+		game.entities.push(this);
+		game.level.root.add(spr, 1);
+	}
+
 	public function hit( by : Entity ) {
 		var s = hxd.Res.sfx;
 		switch( kind ) {
@@ -79,14 +88,18 @@ class Entity {
 	}
 
 	public function destroy() {
+		emitParts(3);
+		remove();
+	}
+
+	function emitParts(proba) {
 		var t = spr.getFrame();
 		var seed = Std.random(1000);
+		var hero = this.kind == Hero;
 		for( px in 0...t.width>>1 )
 			for( py in 0...t.height>>1 )
-				if( hxd.Rand.hash(px + py * t.width, seed) % 3 == 0 )
-					game.addPart(t.sub(px << 1, py << 1, 2, 2), x + ((px << 1) + t.dx) / 16, y + ((py << 1) + t.dy) / 16, hxd.Math.srand(0.1), -(0.2 + Math.random() * 0.1) * 0.8);
-
-		remove();
+				if( hxd.Rand.hash(px + py * t.width, seed) % proba == 0 )
+					game.addPart(t.sub(px << 1, py << 1, 2, 2), x + ((px << 1) + t.dx) / 16, y + ((py << 1) + t.dy) / 16, hxd.Math.srand(0.1), -(0.2 + Math.random() * 0.1) * 0.8, hero);
 	}
 
 	public function remove() {
@@ -241,8 +254,10 @@ class Entity {
 			acc += dt * 0.02;
 			if( acc > 0.9 ) acc = 0.9;
 			if( acc > 0.1 && state == Stand ) state = Jump;
-			moveY(acc * dt);
 		}
+
+		if( acc != 0 ) moveY(acc * dt);
+
 		if( accX != 0 ) {
 			var ox = x, dx = accX * 0.1 * dt;
 			move(dx, 0);

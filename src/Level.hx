@@ -1,8 +1,13 @@
+enum Col {
+	No;
+	Full;
+	Die;
+}
 
 class Level {
 
 	var game : Game;
-	var cols : Array<Bool>;
+	var cols : Array<Col>;
 	var bg : h2d.TileGroup;
 	var tgs : Array<h2d.TileGroup>;
 	var time = 0.;
@@ -13,8 +18,8 @@ class Level {
 
 	public var width : Int;
 	public var height : Int;
-	public var startX : Int;
-	public var startY : Int;
+	public var startX : Float;
+	public var startY : Float;
 
 	public function new() {
 		game = Game.inst;
@@ -25,7 +30,13 @@ class Level {
 
 	public function collide( e : ent.Entity, x : Float, y : Float )  {
 		if( x < 0 || x >= width || y < 0 || y >= height ) return true;
-		return cols[Std.int(x) + Std.int(y) * width];
+		return cols[Std.int(x) + Std.int(y) * width] == Full;
+	}
+
+	public function getCollide( x : Float, y : Float ) {
+		var x = Math.floor(x), y = Math.floor(y);
+		if( x < 0 || x >= width || y < 0 || y >= height ) return Full;
+		return cols[x + y * width];
 	}
 
 	public function setCollide(x, y, v) {
@@ -42,7 +53,7 @@ class Level {
 		var data = Data.levelData.all[0];
 		width = data.width;
 		height = data.height;
-		cols = [];
+		cols = [for( i in 0...width * height ) No];
 		var t = hxd.Res.tiles.toTile();
 		var tiles = t.grid(16);
 		var curLayer = 0;
@@ -77,7 +88,7 @@ class Level {
 					var v = d[x + y * width] - 1;
 					if( v < 0 ) continue;
 					tg.add(x * 16, y * 16, tiles[v]);
-					if( hasCols ) cols[x + y * width] = true;
+					if( hasCols ) cols[x + y * width] = (v == 2 + 3 * 16 ? Die : Full);
 				}
 			}
 			var p = data.props.getLayer(l.name);
@@ -105,8 +116,8 @@ class Level {
 			}
 			var e : ent.Entity = switch( m.kindId ) {
 			case Hero:
-				startX = m.x;
-				startY = m.y;
+				startX = m.x + 0.5;
+				startY = m.y + 1;
 				continue;
 			default:
 				ent.Entity.create(m.kindId, m.x + 0.5, m.y + 1);
