@@ -29,8 +29,12 @@ class Jumper extends Entity {
 			if( spr.colorAdd.x < 0 ) spr.colorAdd = null;
 		}
 
+
 		switch( state ) {
 		case Stand:
+
+			if( Math.abs(game.hero.x - x) > 10 || Math.abs(game.hero.y - y) > 5 )
+				wjump = 0;
 
 			if( game.hero.x < x - 1 )
 				spr.scaleX = -1;

@@ -25,3 +25,5 @@ Day 2:
 14:00-16:00		npc, dialog system, first mob anim, die parts, base sfx
 16:00-17:30		started ld, more sfx
 17:30-18:00		jumper
+18:00-18:30		a bit of music, a bit of LD
+18:00-19:40		tried integrating nape (not successful)
