@@ -28,6 +28,9 @@ class Egg extends Entity {
 				eg.y = 5;
 				game.eggs++;
 
+				if( game.eggs == 5 )
+					game.event.wait(1, game.win);
+
 				game.event.waitUntil(function(dt) {
 					spr.alpha -= 0.1 * dt;
 					if( spr.alpha < 0 ) {

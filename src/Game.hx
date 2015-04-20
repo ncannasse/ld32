@@ -95,6 +95,7 @@ class Game extends hxd.App {
 		});
 		int.onClick = function(_) {
 			start.remove();
+			int.remove();
 			var acc = 0.;
 			event.waitUntil(function(dt) {
 				acc += 0.1 * dt;
@@ -106,6 +107,7 @@ class Game extends hxd.App {
 					title.remove();
 					title = null;
 					hero.lock = false;
+
 					return true;
 				}
 				return false;
@@ -114,6 +116,16 @@ class Game extends hxd.App {
 
 
 
+	}
+
+	public function win() {
+		new h2d.Bitmap(h2d.Tile.fromColor(0, 256, 30), s2d).y = 98;
+		var t = getText(s2d);
+		t.textAlign = Center;
+		t.text = "Congratulations ! You found the five eggs.\nYou can now get an haircut!\nmade in 48h for LD32 by @ncannasse";
+		t.x = Std.int((s2d.width - t.textWidth * t.scaleX) * 0.5);
+		t.y = 100;
+		hero.lock = true;
 	}
 
 	public function restart() {
