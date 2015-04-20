@@ -12,9 +12,13 @@ class Game extends hxd.App {
 	public var entities : Array<ent.Entity>;
 	public var key : { left : Bool, right : Bool, jump : Bool, action : Bool, actionPressed : Bool };
 	public var event : hxd.WaitEvent;
+	public var eggs = 0;
+	public var hearts : Array<h2d.Bitmap>;
 	var actionButton = false;
 	var parts : h2d.SpriteBatch;
 	var hparts : h2d.SpriteBatch;
+	var envParts : h2d.SpriteBatch;
+	var luciol : h2d.Tile;
 
 	override function init() {
 		inst = this;
@@ -25,6 +29,14 @@ class Game extends hxd.App {
 		level = new Level();
 		level.init();
 
+		hearts = [];
+		for( i in 0...3 ) {
+			var b = new h2d.Bitmap(s2d);
+			b.x = 210 + i * 14;
+			b.y = 5;
+			hearts.push(b);
+		}
+
 		parts = new h2d.SpriteBatch(hxd.Res.mobs.toTile());
 		level.root.add(parts, 1);
 		parts.hasUpdate = true;
@@ -33,15 +45,34 @@ class Game extends hxd.App {
 		level.root.add(hparts, 1);
 		hparts.hasUpdate = true;
 
+		envParts = new h2d.SpriteBatch(hxd.Res.mobs.toTile());
+		envParts.blendMode = Add;
+		level.root.add(envParts, 2);
+
+		luciol = envParts.tile.sub(16, 0, 16, 16, -8, -8);
+
 		hero = new ent.Hero(level.startX, level.startY);
 		sx = hero.x * 16 - 128;
 		sy = (hero.y - 1) * 16 - 120;
+
+		for( i in 0...30 ) {
+			var p = new Part(luciol);
+			envParts.add(p);
+			var a = Math.random() * Math.PI * 2;
+			var v = 0.01 + Math.random() * 0.03;
+			p.vx = Math.cos(a) * v;
+			p.vy = Math.sin(a) * v;
+			p.time = Math.random() * 1000;
+			p.x = sx + Std.random(s2d.width + 200) - 100;
+			p.y = sy + Std.random(s2d.height + 200) - 100;
+		}
 	}
 
 	public function restart() {
 		hero.x = level.startX;
 		hero.y = level.startY;
 		hero.restart();
+		level.restart();
 		sx = hero.x * 16 - 128;
 		sy = (hero.y - 1) * 16 - 120;
 	}
@@ -93,8 +124,37 @@ class Game extends hxd.App {
 		if( sy < 0 ) sy = 0;
 		if( sx + s2d.width > level.width * 16 ) sx = level.width * 16 - s2d.width;
 		if( sy + s2d.height > level.height * 16 ) sy = level.height * 16 - s2d.height;
+
+		var dx = level.scroll.x + sx;
+		var dy = level.scroll.y + sy;
 		level.scroll.x = -sx;
 		level.scroll.y = -sy;
+
+		var perlin = new hxd.Perlin();
+		var f = Math.pow(0.95, dt);
+		for( p in envParts.getElements() ) {
+			var p = Std.instance(p, Part);
+			p.time += dt;
+			p.alpha = p.alpha * f + (1 - f) * ((Math.sin(p.time * 0.1) + 1) * 0.25 + 0.5);
+			p.y += Math.cos(p.time * 0.03) * 0.04 * dt;
+			p.x -= dx * 0.1;
+			p.y -= dy * 0.1;
+			var ax = p.x - sx;
+			var ay = p.y - sy;
+			if( ax < -100 || ay < -100 || ax > 356 || ay > 350 ) {
+				p.x = sx + Math.random() * (s2d.width + 200) - 100;
+				p.y = sy + Math.random() * (s2d.height + 200) - 100;
+				p.alpha = 0;
+			}
+		}
+
+		var m = hxd.Res.mobs.toTile();
+		var tl = [m.sub(49, 149, 13, 11), m.sub(63,149,13,11)];
+		for( i in 0...hearts.length ) {
+			var h = hearts[i];
+			h.tile = tl[hero.life > i ? 0 : 1];
+		}
+
 	}
 
 	public function action() {
@@ -122,6 +182,8 @@ class Game extends hxd.App {
 			{ k : Rock, w : 1, h : 1 },
 			{ k : Spider, w : 2, h : 1, l : ["run", 3] },
 			{ k : Jumper, w : 2, h : 2 },
+			{ k : Bee, w: 2, h : 2, l : ["run", 3] },
+			{ k : Egg, w : 2, h : 2 },
 		];
 		var tile = hxd.Res.sprites.toTile();
 		var x = 0;
@@ -195,7 +257,7 @@ class Game extends hxd.App {
 		#end
 		var c = new hxd.snd.SoundData();
 		c.loadURL("music.mp3");
-		var channel = c.playNative(0, true);
+//		var channel = c.playNative(0, true);
 		Data.load(hxd.Res.data.entry.getBytes().toString());
 		new Game();
 	}

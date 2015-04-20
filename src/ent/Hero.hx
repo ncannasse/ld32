@@ -15,6 +15,7 @@ class Hero extends Entity {
 	public function new(x,y) {
 		super(Hero, x, y);
 		feets = 20;
+		life = game.hearts.length;
 		hairBounds = new h2d.col.Bounds();
 		hitDebug = new h2d.Bitmap(h2d.Tile.fromColor(0xFF00FF, 1, 16), spr);
 		hitDebug.y = - 16;
@@ -23,11 +24,12 @@ class Hero extends Entity {
 	override function destroy() {
 		super.destroy();
 		hxd.Res.sfx.hero_die.play();
-		game.event.wait(2, game.restart);
+		game.event.wait(1.5, function() if( isRemoved() && game.hero == this ) game.restart());
 	}
 
 	public function restart() {
 		add();
+		life = game.hearts.length;
 		acc = 0;
 		accX = 0;
 		lock = false;
@@ -36,11 +38,35 @@ class Hero extends Entity {
 		hitRecovery = 1;
 	}
 
+	override function getBounds() {
+		if( state == Catch ) {
+			var b = new h2d.col.Bounds();
+			b.addPoint(spr.localToGlobal(new h2d.col.Point(-0.2, (catchDist + 1) * 16)));
+			b.addPoint(spr.localToGlobal(new h2d.col.Point(0.2, (catchDist + 1) * 16)));
+			b.addPoint(spr.localToGlobal(new h2d.col.Point(-0.2, (catchDist - 0.25) * 16)));
+			b.addPoint(spr.localToGlobal(new h2d.col.Point(0.2, (catchDist - 0.25) * 16)));
+
+			b.offset( -x * 16, -y * 16 );
+			b.xMin /= 16;
+			b.xMax /= 16;
+			b.yMin /= 16;
+			b.yMax /= 16;
+			return b;
+		}
+		return super.getBounds();
+	}
+
 	override public function hit(by:Entity) {
-		if( lock || hitRecovery > 0 || state == Catch ) return;
+		if( lock || hitRecovery > 0 ) return;
+		if( state == Catch ) {
+			catchEnd();
+			if( state == Catch ) return;
+		}
 		hitRecovery = 2;
 		push( x < by.x ? -2 : 2, -0.2 );
 		hxd.Res.sfx.hero_hurt.play();
+		life--;
+		if( life <= 0 ) destroy();
 	}
 
 	override function getSpeed(anim:String) {
@@ -104,6 +130,37 @@ class Hero extends Entity {
 		return (Math.min(frame,4) + 1) * 0.75;
 	}
 
+	function catchEnd() {
+
+		var f = spr.getFrame();
+		var a = spr.rotation;
+		var dist = (f.height + f.dy) / 16;
+
+		if( collide( -dist * Math.sin(a), dist * Math.cos(a)) )
+			return;
+
+		state = Jump;
+		gravity = true;
+		acc = 0;
+		canPush = true;
+		x -= dist * Math.sin(a);
+		y += dist * Math.cos(a);
+
+		if( y < height / 16 ) y = height / 16;
+
+		var pow = Math.sqrt(Math.abs(catchSpeed)) * (0.1 + Math.abs(Math.sin(a))) * 5 * Math.sqrt(dist);
+
+		var dx = Math.cos(a + Math.PI) * pow * (catchSpeed < 0 ? -1 : 1) - Math.sin(a) * 3;
+		var dy = Math.sin(a + Math.PI) * pow * (catchSpeed < 0 ? -1 : 1) + Math.cos(a) * 3;
+
+		var outA = Math.atan2(dy, dx);
+		var mx = Math.cos(outA) * pow;
+		var my = Math.sin(outA) * pow;
+		if( my > 0 ) my = 0 else my = -Math.sqrt( -my * 0.15) - 0.05;
+		push(mx, my);
+		hxd.Res.sfx.yeepee.play();
+	}
+
 	override function update(dt:Float) {
 		super.update(dt);
 
@@ -128,9 +185,9 @@ class Hero extends Entity {
 				moving = true;
 			}
 			if( spr.rotation != 0 ) {
-				var pt = spr.localToGlobal(new h2d.col.Point(0, -16));
+				var pt = spr.localToGlobal(new h2d.col.Point(0, 16));
 				spr.rotation = hxd.Math.angleMove(spr.rotation, 0, 0.2 * dt / (Math.max(1, Math.abs(accX * 2))));
-				var pt2 = spr.localToGlobal(new h2d.col.Point(0, -16));
+				var pt2 = spr.localToGlobal(new h2d.col.Point(0, 16));
 				pt2.x -= pt.x;
 				pt2.y -= pt.y;
 				move(-pt2.x / 16, -pt2.y / 16);
@@ -157,7 +214,10 @@ class Hero extends Entity {
 				//hitDebug.visible = true;
 				hitDebug.x = p * 16;
 				hairBounds.set(0, -19 / 16, p, 13 / 16);
-				if( spr.scaleX < 0 ) hairBounds.xMin -= hairBounds.width;
+				if( spr.scaleX < 0 ) {
+					hairBounds.xMin -= hairBounds.width;
+					hairBounds.xMax = 0;
+				}
 				for( e in game.entities.copy() )
 					if( e != this && e.checkHit(this, hairBounds) && hitList.indexOf(e) < 0 ) {
 						hitList.push(e);
@@ -165,7 +225,10 @@ class Hero extends Entity {
 					}
 			}
 		case Catch:
-			spr.rotation = hxd.Math.angle(spr.rotation + catchSpeed * dt);
+
+			if( lock ) return;
+
+			spr.rotation = hxd.Math.angle(spr.rotation + catchSpeed * 0.5 * dt);
 			var a = spr.rotation;
 
 			var fx = -catchSpeed * Math.sin(a);
@@ -178,16 +241,16 @@ class Hero extends Entity {
 
 			if( game.key.right ) {
 				spr.scaleX = 1;
-				if( da < 0 ) {
-					if( catchSpeed < 0 ) catchSpeed *= Math.pow(1.05, dt);
-					da -= 0.004;
+				if( da * Math.cos(a) < 0 ) {
+					if( catchSpeed < 0 ) catchSpeed *= Math.pow(1.07, dt);
+					da -= 0.005;
 				} else
 					da *= 0.5;
 			} else if( game.key.left ) {
 				spr.scaleX = -1;
-				if( da > 0 ) {
-					if( catchSpeed > 0 ) catchSpeed *= Math.pow(1.05, dt);
-					da += 0.004;
+				if( da * Math.cos(a) > 0 ) {
+					if( catchSpeed > 0 ) catchSpeed *= Math.pow(1.07, dt);
+					da += 0.005;
 				}
 				else
 					da *= 0.5;
@@ -196,29 +259,7 @@ class Hero extends Entity {
 			catchSpeed += da * dt;
 
 			if( game.key.actionPressed ) {
-
-				hxd.Res.sfx.yeepee.play();
-
-				var f = spr.getFrame();
-				state = Jump;
-				gravity = true;
-				acc = 0;
-				canPush = true;
-				a = spr.rotation;
-				var dist = (f.height + f.dy) / 16;
-				x -= dist * Math.sin(a);
-				y += dist * Math.cos(a);
-
-				if( y < height / 16 ) y = height / 16;
-
-				var pow = Math.sqrt(Math.abs(catchSpeed)) * (0.5 + Math.abs(Math.sin(a))) * 5 * Math.sqrt(dist);
-
-				var dx = Math.cos(a + Math.PI) * pow - Math.sin(a) * 3;
-				var dy = Math.sin(a + Math.PI) * pow + Math.cos(a) * 3;
-				var outA = Math.atan2(dy, dx);
-				var mx = Math.cos(outA) * pow;
-				var my = Math.sin(outA) * pow;
-				push(mx, my > 0 ? my * 0.05 : my * 0.1);
+				catchEnd();
 				game.key.actionPressed = false;
 			}
 		default:
@@ -244,15 +285,21 @@ class Hero extends Entity {
 					switch( e.kind ) {
 					case Npc:
 						var text = switch( [Std.int(e.x) , Std.int(e.y - 0.1)] ) {
-						case [6, 4]:
-							["You might want to put your hair into pikes.", "Maybe it hurts, maybe it's goooood."];
-						case [13, 18]:
+						case [13, 87]:
 							["If you are stuck, use your head!", "With your hairstyle, you could even break rocks!"];
-						case [28, 11]:
-							["You looking for XXX ?"];
+						case [6, 73]:
+							["You might want to put your hair into pikes.", "Maybe it hurts, maybe it's goooood."];
+						case [28, 80]:
+							["Dino eggs are you looking for?", "Five of them in the forest there is."];
+						case [54, 96]:
+							["The only way is up.", "Be careful of killer bees."];
+						case [71, 83]:
+							["It looks dangerous.", "But you have strong hair, don't you?" ];
 						default:
 							["???"];
 						}
+						game.level.startX = x;
+						game.level.startY = y;
 						Std.instance(e, Npc).talk(text);
 						return;
 					default:
@@ -261,6 +308,10 @@ class Hero extends Entity {
 
 			push(spr.scaleX * 0.12, state == Jump ? 0 : -0.05);
 			state = Attack;
+		}
+
+		if( Math.abs(y - baseY) > 5 ) {
+			if( baseY < y ) baseY = y - 5 else baseY = y + 5;
 		}
 
 		if( game.level.getCollide(x, y - 0.1) == Die && y - Std.int(y-0.1) > 0.8 )

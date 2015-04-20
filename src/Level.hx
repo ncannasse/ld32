@@ -29,6 +29,7 @@ class Level {
 	}
 
 	public function collide( e : ent.Entity, x : Float, y : Float )  {
+		if( y < 0 ) return false;
 		if( x < 0 || x >= width || y < 0 || y >= height ) return true;
 		return cols[Std.int(x) + Std.int(y) * width] == Full;
 	}
@@ -42,6 +43,18 @@ class Level {
 	public function setCollide(x, y, v) {
 		if( x < 0 || x >= width || y < 0 || y >= height ) return;
 		cols[x + y * width] = v;
+	}
+
+	public function restart() {
+		var data = Data.levelData.all[0];
+		for( m in data.mobs ) {
+			var id = m.x + m.y * width;
+			var e = ents.get(id);
+			if( e == null || e.kind == Rock #if !debug || e.kind == Egg #end || !e.isRemoved() )
+				continue;
+			var e = ent.Entity.create(m.kindId, m.x + 0.5, m.y + 1);
+			ents.set(id, e);
+		}
 	}
 
 	public function init() {
@@ -126,7 +139,7 @@ class Level {
 		}
 		for( e in old ) e.remove();
 
-		root.filters.push(new h2d.filter.Bloom(1,1.5,2,4,10));
+		root.filters.push(new h2d.filter.Bloom(1.2,1.3,2,4,10));
 	}
 
 	public function update(dt:Float) {

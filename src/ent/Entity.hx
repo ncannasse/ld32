@@ -19,6 +19,10 @@ class Entity {
 				new Spider(k, x, y);
 			case Jumper:
 				new Jumper(k, x, y);
+			case Bee:
+				new Bee(k, x, y);
+			case Egg:
+				new Egg(k, x, y);
 			default:
 				new Entity(k, x, y);
 		};
@@ -81,6 +85,9 @@ class Entity {
 		case Npc:
 		case Spider:
 			s.die1.play();
+			destroy();
+		case Bee:
+			s.die3.play();
 			destroy();
 		default:
 			destroy();
@@ -158,7 +165,7 @@ class Entity {
 
 	function getBounds() {
 		if( hitBounds == null ) {
-			hitBounds = h2d.col.Bounds.fromValues( -feets * 0.8 / 16, -height / 16, feets / 16, height / 16);
+			hitBounds = h2d.col.Bounds.fromValues( -feets * 0.5 / 16, -height / 16, feets / 16, height / 16);
 		}
 		return hitBounds;
 	}
@@ -234,6 +241,10 @@ class Entity {
 		}
 	}
 
+	public function isRemoved() {
+		return spr.parent == null;
+	}
+
 	function set_state(s) {
 		state = s;
 		switch( s ) {
@@ -252,14 +263,14 @@ class Entity {
 	public function update(dt:Float) {
 		if( gravity ) {
 			acc += dt * 0.02;
-			if( acc > 0.9 ) acc = 0.9;
+			if( acc > 0.5 ) acc = 0.5;
 			if( acc > 0.1 && state == Stand ) state = Jump;
 		}
 
-		if( acc != 0 ) moveY(acc * dt);
+		if( acc != 0 ) moveY(Math.max(acc,-0.3) * dt);
 
 		if( accX != 0 ) {
-			var ox = x, dx = accX * 0.1 * dt;
+			var ox = x, dx = Math.min(0.5, Math.max( -0.5, accX * 0.1 )) * dt;
 			move(dx, 0);
 			//if( Math.abs(x - (ox + dx)) > Math.abs(dx * 0.1) )
 			//	accX *= -0.5;

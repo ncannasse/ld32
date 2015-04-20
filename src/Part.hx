@@ -2,6 +2,7 @@
 class Part extends h2d.SpriteBatch.BatchElement {
 	public var vx : Float;
 	public var vy : Float;
+	public var time : Float;
 	var game : Game;
 
 	public function new(t) {

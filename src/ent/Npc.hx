@@ -2,6 +2,8 @@ package ent;
 
 class Npc extends Entity {
 
+	var talking : Bool;
+
 	public function new(k, x, y) {
 		super(k, x, y);
 	}
@@ -22,10 +24,11 @@ class Npc extends Entity {
 			pos += dt * speed;
 			var p = Std.int(pos);
 			if( p != ipos && ipos <= text.length ) {
+				if( text.charAt(p) != " " ) hxd.Res.sfx.talk1.play();
 				t.text = text.substr(0, p);
 				ipos = p;
 			}
-			if( game.action() ) {
+			if( game.action() || Math.abs(game.hero.x - x) > 2 ) {
 				if( p >= text.length ) {
 					onEnd();
 					return true;
@@ -37,16 +40,17 @@ class Npc extends Entity {
 	}
 
 	public function talk( texts : Array<String>, ?onEnd ) {
+		if( talking ) return;
+		talking = true;
 		function next() {
 			var t = texts.shift();
 			if( t == null ) {
-				game.hero.lock = false;
+				talking = false;
 				if( onEnd != null ) onEnd();
 			} else {
 				talNpcSeq(t, next);
 			}
 		}
-		game.hero.lock = true;
 		next();
 	}
 
