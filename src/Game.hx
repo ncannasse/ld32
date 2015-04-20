@@ -93,7 +93,9 @@ class Game extends hxd.App {
 			}
 			return start.parent == null;
 		});
+		hero.play("dance");
 		int.onClick = function(_) {
+			hero.play("default");
 			start.remove();
 			int.remove();
 			var acc = 0.;
@@ -239,7 +241,7 @@ class Game extends hxd.App {
 	function initFrames() {
 		frames = new Map();
 		var a : Array<{ k : Kind, w : Int, h : Int, ?l : Array<Dynamic> }> = [
-			{ k : Hero, w : 2, h : 2, l : ["default", 1, "blink", 1, "prerun", 1, "run", 3, "jump", 2, "attack", 2, "hair", 5, "catch", 3] },
+			{ k : Hero, w : 2, h : 2, l : ["default", 1, "blink", 1, "prerun", 1, "run", 3, "jump", 2, "attack", 2, "hair", 5, "catch", 3, "dance", 4] },
 			{ k : Rotator, w : 1, h : 1 },
 			{ k : Npc, w : 1, h : 2 },
 			{ k : Rock, w : 1, h : 1 },
@@ -263,6 +265,10 @@ class Game extends hxd.App {
 				var dw = w;
 				switch( name ) {
 				case "hair": dw = 5 * 16;
+				case "dance":
+					y += h;
+					h = 2 * 16;
+					x = 0;
 				case "catch":
 					x = 0;
 					y += h;

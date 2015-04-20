@@ -71,7 +71,7 @@ class Hero extends Entity {
 
 	override function getSpeed(anim:String) {
 		return switch( anim ) {
-		case "blink": 7;
+		case "blink", "dance": 7;
 		case "run", "prerun": 10;
 		case "attack", "attack_rev": 40;
 		case "hair", "hair_rev": 80;
