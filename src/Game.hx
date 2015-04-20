@@ -19,6 +19,8 @@ class Game extends hxd.App {
 	var hparts : h2d.SpriteBatch;
 	var envParts : h2d.SpriteBatch;
 	var luciol : h2d.Tile;
+	var title : h2d.Bitmap;
+	var channel : hxd.snd.SoundChannel;
 
 	override function init() {
 		inst = this;
@@ -34,8 +36,13 @@ class Game extends hxd.App {
 			var b = new h2d.Bitmap(s2d);
 			b.x = 210 + i * 14;
 			b.y = 5;
+			b.alpha = 0;
 			hearts.push(b);
 		}
+
+		var c = new hxd.snd.SoundData();
+		c.loadURL("music.mp3");
+		channel = c.playNative(0, true);
 
 		parts = new h2d.SpriteBatch(hxd.Res.mobs.toTile());
 		level.root.add(parts, 1);
@@ -52,8 +59,9 @@ class Game extends hxd.App {
 		luciol = envParts.tile.sub(16, 0, 16, 16, -8, -8);
 
 		hero = new ent.Hero(level.startX, level.startY);
+		hero.lock = true;
 		sx = hero.x * 16 - 128;
-		sy = (hero.y - 1) * 16 - 120;
+		sy = (hero.y - 3) * 16 - 120;
 
 		for( i in 0...30 ) {
 			var p = new Part(luciol);
@@ -66,6 +74,46 @@ class Game extends hxd.App {
 			p.x = sx + Std.random(s2d.width + 200) - 100;
 			p.y = sy + Std.random(s2d.height + 200) - 100;
 		}
+
+
+		title = new h2d.Bitmap(hxd.Res.title.toTile(), level.root);
+		title.y = sy;
+		var int = new h2d.Interactive(s2d.width, s2d.height, s2d);
+		var start = getText(s2d);
+		start.text = "Click to start";
+		start.x = Std.int((s2d.width - start.textWidth * start.scaleX) * 0.5);
+		start.dropShadow.alpha = 0.6;
+		start.y = 140;
+		var time = 0.;
+		event.waitUntil(function(dt) {
+			time += dt/60;
+			if( time > 0 ) {
+				time -= 0.5;
+				start.visible = !start.visible;
+			}
+			return start.parent == null;
+		});
+		int.onClick = function(_) {
+			start.remove();
+			var acc = 0.;
+			event.waitUntil(function(dt) {
+				acc += 0.1 * dt;
+				title.y -= acc * dt;
+				if( title.y < sy - 120 ) {
+
+					for( b in hearts ) b.alpha = 0.8;
+
+					title.remove();
+					title = null;
+					hero.lock = false;
+					return true;
+				}
+				return false;
+			});
+		};
+
+
+
 	}
 
 	public function restart() {
@@ -78,6 +126,7 @@ class Game extends hxd.App {
 	}
 
 	override function update(dt:Float) {
+
 		#if debug
 		if( K.isPressed("R".code) ) {
 			speed = speed == 1 ? 0.1 : 1;
@@ -118,8 +167,10 @@ class Game extends hxd.App {
 		var tx = hero.x * 16 - 128;
 		var ty = (Math.max(hero.y,hero.baseY) - 1) * 16 - 120;
 		var p = Math.pow(0.9, dt);
-		sx = sx * p + (1 - p) * tx;
-		sy = sy * p + (1 - p) * ty;
+		if( title == null ) {
+			sx = sx * p + (1 - p) * tx;
+			sy = sy * p + (1 - p) * ty;
+		}
 		if( sx < 0 ) sx = 0;
 		if( sy < 0 ) sy = 0;
 		if( sx + s2d.width > level.width * 16 ) sx = level.width * 16 - s2d.width;
@@ -255,9 +306,6 @@ class Game extends hxd.App {
 		#else
 		hxd.Res.initEmbed({compressSounds:true});
 		#end
-		var c = new hxd.snd.SoundData();
-		c.loadURL("music.mp3");
-//		var channel = c.playNative(0, true);
 		Data.load(hxd.Res.data.entry.getBytes().toString());
 		new Game();
 	}

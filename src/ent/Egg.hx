@@ -23,6 +23,7 @@ class Egg extends Entity {
 				hxd.Res.sfx.get_egg.play();
 
 				var eg = new h2d.Bitmap(hxd.Res.mobs.toTile().sub(35, 149, 9, 11), game.s2d);
+				eg.alpha = 0.8;
 				eg.x = 5 + game.eggs * 13;
 				eg.y = 5;
 				game.eggs++;
