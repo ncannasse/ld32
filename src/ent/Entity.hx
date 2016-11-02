@@ -80,7 +80,7 @@ class Entity {
 			game.hero.catchRot(this);
 		case Rock:
 			var r = s.break_rock;
-			if( !r.isPlaying() ) r.play();
+			if( r.lastPlay < haxe.Timer.stamp() - 0.2 ) r.play();
 			destroy();
 		case Npc:
 		case Spider:
@@ -174,7 +174,7 @@ class Entity {
 		if( bounds == null ) bounds = e.getBounds();
 		var b = getBounds().clone();
 		b.offset(x - e.x, y - e.y);
-		return b.collide(bounds);
+		return b.intersects(bounds);
 	}
 
 	public function play( anim : String, ?onEnd : Void -> Void ) {

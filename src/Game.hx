@@ -20,7 +20,6 @@ class Game extends hxd.App {
 	var envParts : h2d.SpriteBatch;
 	var luciol : h2d.Tile;
 	var title : h2d.Bitmap;
-	var channel : hxd.snd.SoundChannel;
 
 	override function init() {
 		inst = this;
@@ -40,9 +39,7 @@ class Game extends hxd.App {
 			hearts.push(b);
 		}
 
-		var c = new hxd.snd.SoundData();
-		c.loadURL("music.mp3");
-		channel = c.playNative(0, true);
+		hxd.Res.music.play(true);
 
 		parts = new h2d.SpriteBatch(hxd.Res.mobs.toTile());
 		level.root.add(parts, 1);
