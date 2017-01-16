@@ -85,7 +85,7 @@ class Level {
 
 				var m = new h3d.Matrix();
 				m.identity();
-				m.colorBrightness(-0.1);
+				m.colorLightness(-0.1);
 				m.colorContrast(-0.05);
 				m.colorHue(-0.1);
 				var amb = new h2d.filter.Ambient(tg, m);
