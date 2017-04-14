@@ -1,0 +1,8 @@
+-cp src
+-hl ld32.hl
+-main Game
+-lib heaps
+-lib castle
+-lib hlsdl
+-dce full
+-D windowSize=768x720
