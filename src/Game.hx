@@ -20,6 +20,9 @@ class Game extends hxd.App {
 	var envParts : h2d.SpriteBatch;
 	var luciol : h2d.Tile;
 	var title : h2d.Bitmap;
+	var pad : hxd.Pad;
+
+	static var PAD = hxd.Pad.DEFAULT_CONFIG;
 
 	override function init() {
 		inst = this;
@@ -38,6 +41,9 @@ class Game extends hxd.App {
 			b.alpha = 0;
 			hearts.push(b);
 		}
+
+		pad = hxd.Pad.createDummy();
+		hxd.Pad.wait(function(p) this.pad = p);
 
 		hxd.Res.music.play(true);
 
@@ -83,6 +89,7 @@ class Game extends hxd.App {
 		start.y = 140;
 		var time = 0.;
 		event.waitUntil(function(dt) {
+			if( pad.buttons[PAD.A] || pad.buttons[PAD.start] ) int.onClick(null);
 			time += dt/60;
 			if( time > 0 ) {
 				time -= 0.5;
@@ -155,10 +162,10 @@ class Game extends hxd.App {
 		dt *= speed;
 
 		key = {
-			left : K.isDown(K.LEFT) || K.isDown("Q".code) || K.isDown("A".code),
-			right : K.isDown(K.RIGHT) || K.isDown("D".code),
-			jump : K.isDown(K.UP) || K.isDown("Z".code) || K.isDown("W".code),
-			action : K.isDown(K.SPACE) || K.isDown("E".code) || K.isDown(K.CTRL),
+			left : K.isDown(K.LEFT) || K.isDown("Q".code) || K.isDown("A".code) || pad.xAxis < -0.5,
+			right : K.isDown(K.RIGHT) || K.isDown("D".code) || pad.xAxis > 0.5,
+			jump : K.isDown(K.UP) || K.isDown("Z".code) || K.isDown("W".code) || pad.buttons[PAD.A],
+			action : K.isDown(K.SPACE) || K.isDown("E".code) || K.isDown(K.CTRL) || pad.buttons[PAD.X],
 			actionPressed : false,
 		};
 		if( key.action ) {
