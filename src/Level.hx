@@ -68,7 +68,7 @@ class Level {
 		height = data.height;
 		cols = [for( i in 0...width * height ) No];
 		var t = hxd.Res.tiles.toTile();
-		var tiles = t.grid(16);
+		var tiles = t.gridFlatten(16);
 		var curLayer = 0;
 		for( l in data.layers ) {
 			var d = l.data.data.decode();
