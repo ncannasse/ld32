@@ -90,7 +90,7 @@ class Game extends hxd.App {
 		var time = 0.;
 		event.waitUntil(function(dt) {
 			if( pad.buttons[PAD.A] || pad.buttons[PAD.start] ) int.onClick(null);
-			time += dt/60;
+			time += dt;
 			if( time > 0 ) {
 				time -= 0.5;
 				start.visible = !start.visible;
@@ -104,8 +104,8 @@ class Game extends hxd.App {
 			int.remove();
 			var acc = 0.;
 			event.waitUntil(function(dt) {
-				acc += 0.1 * dt;
-				title.y -= acc * dt;
+				acc += 6 * dt;
+				title.y -= acc * dt * 60;
 				if( title.y < sy - 120 ) {
 
 					for( b in hearts ) b.alpha = 0.8;
@@ -144,6 +144,7 @@ class Game extends hxd.App {
 	}
 
 	override function update(dt:Float) {
+		dt *= 60; // old dt support
 
 		#if debug
 		if( K.isPressed("R".code) ) {
@@ -179,7 +180,7 @@ class Game extends hxd.App {
 		for( e in entities.copy() )
 			e.update(dt);
 
-		event.update(dt);
+		event.update(dt/60);
 		level.update(dt);
 
 		var tx = hero.x * 16 - 128;

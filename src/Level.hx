@@ -13,7 +13,7 @@ class Level {
 	var time = 0.;
 	var fog : h2d.TileGroup;
 	var ents : Map<Int, ent.Entity>;
-	public var scroll : h2d.Sprite;
+	public var scroll : h2d.Object;
 	public var root : h2d.Layers;
 
 	public var width : Int;
@@ -23,7 +23,7 @@ class Level {
 
 	public function new() {
 		game = Game.inst;
-		scroll = new h2d.Sprite(game.s2d);
+		scroll = new h2d.Object(game.s2d);
 		root = new h2d.Layers(scroll);
 		ents = new Map();
 	}
@@ -70,6 +70,7 @@ class Level {
 		var t = hxd.Res.tiles.toTile();
 		var tiles = t.gridFlatten(16);
 		var curLayer = 0;
+		var filters = new Array<h2d.filter.Filter>();
 		for( l in data.layers ) {
 			var d = l.data.data.decode();
 			var tg = new h2d.TileGroup(t);
@@ -90,7 +91,7 @@ class Level {
 				m.colorHue(-0.1);
 				var amb = new h2d.filter.Ambient(tg, m);
 				amb.invert = true;
-				root.filters = [amb];
+				filters.push(amb);
 
 			default:
 			}
@@ -139,7 +140,8 @@ class Level {
 		}
 		for( e in old ) e.remove();
 
-		root.filters.push(new h2d.filter.Bloom(1.2,1.3,2,4,10));
+		filters.push(new h2d.filter.Bloom(1.2,1.3,8));
+		root.filter = new h2d.filter.Group(filters);
 	}
 
 	public function update(dt:Float) {

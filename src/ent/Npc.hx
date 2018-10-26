@@ -21,7 +21,7 @@ class Npc extends Entity {
 		t.text = "";
 		var pos = 0., ipos = 0;
 		game.event.waitUntil(function(dt) {
-			pos += dt * speed;
+			pos += dt * 60 * speed;
 			var p = Std.int(pos);
 			if( p != ipos && ipos <= text.length ) {
 				if( text.charAt(p) != " " ) hxd.Res.sfx.talk1.play();
@@ -90,9 +90,9 @@ class Npc extends Entity {
 
 		function hide() {
 			game.event.waitUntil(function(dt) {
-				g.alpha -= 0.1 * dt;
-				t.alpha -= 0.1 * dt;
-				ti.alpha -= 0.1 * dt;
+				g.alpha -= 6 * dt;
+				t.alpha -= 6 * dt;
+				ti.alpha -= 6 * dt;
 				if( g.alpha < 0 ) {
 					g.remove();
 					return true;
@@ -102,7 +102,7 @@ class Npc extends Entity {
 		}
 
 		game.event.waitUntil(function(dt) {
-			g.alpha = ti.alpha += 0.1 * dt;
+			g.alpha = ti.alpha += 6 * dt;
 			if( g.alpha > 1 ) {
 				g.alpha = ti.alpha = 1;
 				t.visible = true;

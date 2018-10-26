@@ -32,7 +32,7 @@ class Egg extends Entity {
 					game.event.wait(1, game.win);
 
 				game.event.waitUntil(function(dt) {
-					spr.alpha -= 0.1 * dt;
+					spr.alpha -= 6 * dt;
 					if( spr.alpha < 0 ) {
 						remove();
 						return true;

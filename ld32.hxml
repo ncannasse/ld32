@@ -1,9 +1,6 @@
 -cp src
--swf ld32.swf
--swf-header 768:720:60:000000
--swf-version 11.8
+-js ld32.js
 -main Game
 -lib heaps
 -lib castle
--lib air3
 -dce full
