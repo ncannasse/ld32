@@ -108,7 +108,7 @@ class Level {
 			var p = data.props.getLayer(l.name);
 			if( p != null && p.mode == Ground ) {
 				var tprops = data.props.getTileset(Data.levelData, l.data.file);
-				var tbuild = new cdb.TileBuilder(tprops, t.width>>4, (t.width >> 4) * (t.height >> 4));
+				var tbuild = new cdb.TileBuilder(tprops, t.iwidth>>4, (t.iwidth >> 4) * (t.iheight >> 4));
 				var out = tbuild.buildGrounds(d, width);
 				var i = 0;
 				var max = out.length;

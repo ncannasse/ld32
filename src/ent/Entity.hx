@@ -103,9 +103,9 @@ class Entity {
 		var t = spr.getFrame();
 		var seed = Std.random(1000);
 		var hero = this.kind == Hero;
-		for( px in 0...t.width>>1 )
-			for( py in 0...t.height>>1 )
-				if( hxd.Rand.hash(px + py * t.width, seed) % proba == 0 )
+		for( px in 0...t.iwidth>>1 )
+			for( py in 0...t.iheight>>1 )
+				if( hxd.Rand.hash(px + py * t.iwidth, seed) % proba == 0 )
 					game.addPart(t.sub(px << 1, py << 1, 2, 2), x + ((px << 1) + t.dx) / 16, y + ((py << 1) + t.dy) / 16, hxd.Math.srand(0.1), -(0.2 + Math.random() * 0.1) * 0.8, hero);
 	}
 

@@ -69,12 +69,12 @@ class Npc extends Entity {
 		var g = new h2d.ScaleGrid(hxd.Res.dialog.toTile(), 5, 5, game.level.scroll);
 		g.width = Std.int(t.textWidth * t.scaleX + 10);
 		g.height = Std.int(t.textHeight * t.scaleX + 6);
-		g.x = Std.int(e.spr.x) - (g.width >> 1);
+		g.x = Std.int(e.spr.x) - (Std.int(g.width) >> 1);
 		g.y = Std.int(e.spr.y) - g.height - 28;
 		g.addChild(t);
 
 		var ti = new h2d.Bitmap(hxd.Res.dialogTick.toTile(), g);
-		ti.x = (g.width >> 1) - 6;
+		ti.x = (Std.int(g.width) >> 1) - 6;
 		ti.y = g.height - 1;
 
 		return { g : g, t : t, ti : ti };
